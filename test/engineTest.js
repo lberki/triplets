@@ -156,6 +156,15 @@ exports.testCanKillMultipleBears = function(test) {
     test.done();
 }
 
+exports.textNewBearDoesNotKillIfItCanMove = function(test) {
+    var g = new engine.Game(3, 1);
+    g.setBoard("B  ");
+    g.setNext(figures.bear);
+    test.ok(g.place(1, 0));
+    assertBoard(test, g, "B B");
+    test.done();
+}
+
 exports.testCanCreateTempleAtPoint = function(test) {
     var g = new engine.Game(8, 1);
     g.setBoard("BBB BBB1");

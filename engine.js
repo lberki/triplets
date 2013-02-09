@@ -171,9 +171,22 @@ Game.prototype.killImmobileBearsAt = function(x, y) {
 	return;
     }
 
+    var foundMobileBear = false;
     var deadBears = this.findCluster(x, y, function(x, y) {
-	return self.isImmobileBear(x, y);
+	if (self.board[y][x] !== FIGURES.bear) {
+	    return false;
+	}
+	if (self.isImmobileBear(x, y)) {
+	    return true;
+	} else {
+	    foundMobileBear = true;
+	    return false;
+	}
     });
+
+    if (foundMobileBear) {
+	return;
+    }
 
     deadBears.forEach(function(l) {
 	self.board[l.y][l.x] = FIGURES.grave;

@@ -30,6 +30,8 @@ function startsWith(str, prefix) {
 
 function Server() {
     this.staticFiles = {};
+    this.methods = {};
+    this.objects = {};
 }
 
 Server.prototype.onRequest = function(request, response) {
@@ -59,12 +61,9 @@ Server.prototype.registerStaticFile = function(urlPath, localPath) {
     this.staticFiles[urlPath] = localPath;
 }
 
-Server.prototype.startGame = function(data) {
-    console.log("start: " + data.name);
-}
-
-Server.prototype.gameStep = function(data) {
-    console.log("step: " + data);
+Server.prototype.registerMethod = function(name, obj, fn) {
+    this.methods[name] = fn;
+    this.objects[name] = obj;
 }
 
 Server.prototype.start = function() {
@@ -73,8 +72,11 @@ Server.prototype.start = function() {
     this.io = io.listen(this.app);
     this.app.listen(8080);
     this.io.sockets.on("connection", function(socket) {
-	socket.on("startGame", function(data) { self.startGame(data); });
-	socket.on("gameStep", function(data) { self.gameStep(data); });
+	Object.keys(self.methods).forEach(function(methodName) {
+	    var method = self.methods[methodName];
+	    var obj = self.objects[methodName];
+	    socket.on(methodName, function(data) { method.call(obj, data); });
+	});
     });
 
     this.registerStaticFile("index.html", "./web/index.html");

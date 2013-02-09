@@ -1,5 +1,3 @@
-console.log("Hello, world!");
-
 function id(v) { return v; }
 
 var name = "John";
@@ -18,7 +16,6 @@ $(document).ready(function() {
 });
 
 function stash() {
-    console.log("stash");
     socket.emit("stash", { name: name });
 }
 

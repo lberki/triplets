@@ -3,7 +3,7 @@ console.log("Hello, world!");
 function id(v) { return v; }
 
 var name = "John";
-var socket = io.connect("http://oldie.muc.lberki.net");
+var socket = io.connect("http://oldie.muc.lberki.net:8080");
 socket.emit("startGame", { name: name });
 socket.on("state", function(data) { 
     console.log(data);

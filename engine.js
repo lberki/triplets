@@ -269,7 +269,7 @@ Game.prototype.place = function(x, y) {
 Game.prototype.stash = function() {
     var oldStash = this.stash;
     this.stash = this.next;
-    this.next = this.stash;
+    this.next = oldStash;
 }
 
 Game.prototype.isImmobileBear = function(x, y) {

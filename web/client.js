@@ -44,7 +44,6 @@ function setBoard(board, height, width) {
     var cells = rows.selectAll("div.boardCell")
 	.data(id)
         .text(function(d) { return d.figure; })
-        .on("click", cellClicked)
         .attr("class", classAttr);
     cells
         .enter().append("div")

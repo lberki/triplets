@@ -1,8 +1,9 @@
 function Manager() {
 }
 
-Manager.prototype.startGame = function(data) {
+Manager.prototype.startGame = function(data, callback) {
     console.log("start: " + data.name);
+    callback.state({name: "Jane"});
 }
 
 Manager.prototype.gameStep = function(data) {

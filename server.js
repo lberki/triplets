@@ -32,6 +32,7 @@ function Server() {
     this.staticFiles = {};
     this.methods = {};
     this.objects = {};
+    this.callbacks = [];
 }
 
 Server.prototype.onRequest = function(request, response) {
@@ -66,16 +67,27 @@ Server.prototype.registerMethod = function(name, obj, fn) {
     this.objects[name] = obj;
 }
 
+Server.prototype.registerCallback = function(name) {
+    this.callbacks.push(name);
+}
+
 Server.prototype.start = function() {
     var self = this;
     this.app = http.createServer(function() { self.onRequest.apply(self, arguments); });    
     this.io = io.listen(this.app);
     this.app.listen(8080);
     this.io.sockets.on("connection", function(socket) {
+	var callback = {};
+	self.callbacks.forEach(function(callbackName) {
+	    callback[callbackName] = function(data) {
+		socket.emit(callbackName, data);
+	    };
+	});
+
 	Object.keys(self.methods).forEach(function(methodName) {
 	    var method = self.methods[methodName];
 	    var obj = self.objects[methodName];
-	    socket.on(methodName, function(data) { method.call(obj, data); });
+	    socket.on(methodName, function(data) { method.call(obj, data, callback); });
 	});
     });
 

@@ -31,8 +31,8 @@ function moves() {
 
 function assertBoard(test, game) {
     var args = Array.prototype.slice.call(arguments, 2);
-    var expected = args.join("\n");
-    test.equals(game.boardToString(), expected);
+    var expected = args.join("");
+    test.equals(game.getState().board, expected);
 }
 
 exports.moreBearsThanRobots = function(test) {

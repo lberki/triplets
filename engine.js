@@ -146,18 +146,22 @@ function Game(width, height) {
     this.score = 0;
 }
 
-Game.prototype.boardToString = function() {
-    var result = "";
+Game.prototype.getState = function() {
+    var board = "";
     for (var y = 0; y < this.height; y++) {
-	if (y !== 0) {
-	    result += "\n";
-	}
-	for (var x = 0; x < this.width; x++) {
-	    result += this.board[y][x].symbol;
+ 	for (var x = 0; x < this.width; x++) {
+	    board += this.board[y][x].symbol;
 	}
     }
 
-    return result;
+    return {
+	board: board,
+	score: this.score,
+	next: this.next.symbol,
+	stash: this.stash.symbol,
+	width: this.width,
+	height: this.height
+    };
 }
 
 Game.prototype.killImmobileBearsAt = function(x, y) {

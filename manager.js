@@ -16,12 +16,12 @@ Manager.prototype.startGame = function(data, callback) {
 Manager.prototype.tickle = function(name) {
     var self = this;
     if (name in this.timeouts) {
-	clearTimeout(this.timeouts[data.name]);
+	clearTimeout(this.timeouts[name]);
     }
 
     this.timeouts[name] = setTimeout(function() {
 	self.timedOut(name);
-    }, 1000);
+    }, 100000000);
 }
 
 Manager.prototype.timedOut = function(name) {
@@ -30,8 +30,19 @@ Manager.prototype.timedOut = function(name) {
     delete this.timeouts[name];
 }
 
-Manager.prototype.gameStep = function(data) {
-    console.log("step: " + data.name);
+Manager.prototype.place = function(data, callback) {
+    var game = this.games[data.name];
+    console.log("place: " + data.x + ":" + data.y);
+    game.place(data.x, data.y);
+    callback.state(game.getState());
+    this.tickle(data.name);
+}
+
+Manager.prototype.stash = function(data, callback) {
+    var game = this.games[data.name];
+    console.log("stash: " + data.name);
+    game.stash();
+    callback.state(game.getState());
     this.tickle(data.name);
 }
 

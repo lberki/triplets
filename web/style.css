@@ -1,0 +1,40 @@
+// e123456789BgtcRrmC
+
+div#score {
+    display: inline-block;
+}
+
+div#board {
+    display: block;
+}
+
+div#stash {
+    display: inline-block;
+}
+
+div#next {
+    display: inline-block;
+}
+
+div.boardRow {
+    display: block;
+}
+
+div.tile {
+    border: 1px solid black;
+    margin: 2px;
+    height: 20pt;
+    line-height: 20py;
+    width: 20pt;
+    text-align: center;
+    vertical-align: middle;
+    cursor: default;
+}
+
+div.boardCell {
+    display: inline-block;
+}
+
+div.figure_e {
+    background-color: #eee;
+}

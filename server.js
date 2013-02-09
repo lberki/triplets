@@ -7,7 +7,8 @@ var fs = require("fs");
 var MIME_TYPES = {
     ".html": "text/html",
     ".js": "application/javascript",
-    ".ico": "image/x-icon"
+    ".ico": "image/x-icon",
+    ".css": "text/css",
 };
 
 function mimeTypeOf(p) {
@@ -93,6 +94,7 @@ Server.prototype.start = function() {
 
     this.registerStaticFile("index.html", "./web/index.html");
     this.registerStaticFile("client.js", "./web/client.js");
+    this.registerStaticFile("style.css", "./web/style.css");
 }
 
 exports.Server = Server;

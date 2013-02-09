@@ -50,7 +50,7 @@ var DIRECTIONS = [
 
 
 FIGURES = {
-    empty: new Figure(' ', 0),
+    empty: new Figure('e', 0),
     grass: new Figure('1', 0.60),
     bush: new Figure('2', 0.15),
     tree: new Figure('3', 0.02),
@@ -74,6 +74,7 @@ FIGURE_BY_SYMBOL = {};
 for (var k in FIGURES) {
     FIGURE_BY_SYMBOL[FIGURES[k].symbol] = FIGURES[k];
 }
+FIGURE_BY_SYMBOL[" "] = FIGURES.empty;
 
 COMBINATIONS = [
     new Combination(FIGURES.grass, FIGURES.bush, 3, quadraticScore(3, 1)),
@@ -141,7 +142,7 @@ function Game(width, height) {
     this.width = width;
     this.height = height;
     this.board = createArray(width, height, FIGURES.empty);
-    this.stash = FIGURES.empty;
+    this.stashed = FIGURES.empty;
     this.next = randomFigure();
     this.score = 0;
 }
@@ -158,7 +159,7 @@ Game.prototype.getState = function() {
 	board: board,
 	score: this.score,
 	next: this.next.symbol,
-	stash: this.stash.symbol,
+	stash: this.stashed.symbol,
 	width: this.width,
 	height: this.height
     };
@@ -271,9 +272,12 @@ Game.prototype.place = function(x, y) {
 }
 
 Game.prototype.stash = function() {
-    var oldStash = this.stash;
-    this.stash = this.next;
-    this.next = oldStash;
+    var oldStashed = this.stashed;
+    this.stashed = this.next;
+    this.next = oldStashed;
+    if (this.next === FIGURES.empty) {
+	this.next = randomFigure();
+    }
 }
 
 Game.prototype.isImmobileBear = function(x, y) {

@@ -6,11 +6,11 @@ function Manager() {
     this.timeouts = {};
 }
 
-Manager.prototype.startGame = function(data) {
+Manager.prototype.startGame = function(data, callback) {
     var gameId = idgen(32, "0123456789abcdef");
-    this.games[gameId] = new engine.Game(2, 2);
+    this.games[gameId] = new engine.Game(6, 6);
     this.tickle(gameId);
-    return { id: gameId, state: this.games[gameId].getState() };
+    callback({ id: gameId, state: this.games[gameId].getState() });
 }
 
 Manager.prototype.tickle = function(gameId) {
@@ -30,7 +30,7 @@ Manager.prototype.timedOut = function(gameId) {
     delete this.timeouts[gameId];
 }
 
-Manager.prototype.action = function(data) {
+Manager.prototype.action = function(data, callback) {
     var game = this.games[data.gameId];
     var rxNumber = /^[0-9]+$/;
     switch (data.action) {
@@ -45,7 +45,7 @@ Manager.prototype.action = function(data) {
     }
 
     this.tickle(data.gameId);
-    return { state: game.getState() };
+    callback({ state: game.getState() });
 }
 
 exports.Manager = Manager;

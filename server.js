@@ -50,17 +50,17 @@ Server.prototype.onRequest = function(request, response) {
 	return;
     }
 
-    var result = null;
-    if (urlPath == "startGame") {
-	result = this.manager.startGame(reqUrl.query);
-    } else if (urlPath == "action") {
-	result = this.manager.action(reqUrl.query);
-    }
-
-    if (result !== null) {
+    var responseCallback = function(result) {
 	response.writeHead("200", {"Content-Type": "text/json"});
 	response.write(JSON.stringify(result));
 	response.end();
+    };
+
+    if (urlPath == "startGame") {
+	this.manager.startGame(reqUrl.query, responseCallback);
+	return;
+    } else if (urlPath == "action") {
+	this.manager.action(reqUrl.query, responseCallback);
 	return;
     }
 

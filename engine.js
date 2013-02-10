@@ -48,6 +48,23 @@ var DIRECTIONS = [
     new Vector(-1, 0) 
 ];
 
+function directionName(dir) {
+    if (dir.x == -1 && dir.y == 0) {
+	return "l";
+    }
+    
+    if (dir.x == 1 && dir.y == 0) {
+	return "r";
+    }
+
+    if (dir.x == 0 && dir.y == -1) {
+	return "u";
+    }
+
+    if (dir.x == 0 && dir.y == 1) {
+	return "d";
+    }
+}
 
 FIGURES = {
     empty: new Figure('e', 0),
@@ -272,7 +289,7 @@ Game.prototype.forCells = function(f) {
 
 Game.prototype.place = function(x, y) {
     if (this.gameOver) {
-	return;
+	return false;
     }
 
     var figure = this.next;
@@ -292,12 +309,15 @@ Game.prototype.place = function(x, y) {
 	}
     }
 
+    var encoding = "P" + x + ":" + y;
     if (figure === FIGURES.crystal) {
 	figure = this.decideCrystal(x, y);
     }
     this.placeFigure(x, y, figure);
-    this.moveBears();
+    encoding += this.moveBears();
     this.next = randomFigure();
+    encoding += " N" + this.next.symbol;
+
     if (this.next != FIGURES.robot && this.stash != FIGURES.robot && this.stash != FIGURES.empty) {
 	var foundEmpty = false;
 	this.forCells(function(x, y, figure) { 
@@ -309,20 +329,25 @@ Game.prototype.place = function(x, y) {
 	    this.gameOver = true;
 	}
     }
-    return true;
+
+    return encoding;
 }
 
 Game.prototype.stash = function() {
     if (this.gameOver) {
-	return;
+	return false;
     }
 
+    var encoding = "S";
     var oldStashed = this.stashed;
     this.stashed = this.next;
     this.next = oldStashed;
     if (this.next === FIGURES.empty) {
 	this.next = randomFigure();
+	encoding += " N" + this.next.symbol;
     }
+
+    return encoding;
 }
 
 Game.prototype.isImmobileBear = function(x, y) {
@@ -370,6 +395,7 @@ Game.prototype.findCluster = function(x, y, predicate) {
 
 Game.prototype.moveBears = function() {
     var mobileBears = [];
+    var encoding = "";
     for (var y = 0; y < this.height; y++) {
 	for (var x = 0; x < this.width; x++) {
 	    if (this.board[y][x] === FIGURES.bear &&
@@ -399,8 +425,11 @@ Game.prototype.moveBears = function() {
 	    var dir = randomChoice(possibleDirections);
 	    this.board[y][x] = FIGURES.empty;
 	    this.board[y + dir.y][x + dir.x] = FIGURES.bear;
+	    encoding += " B" + directionName(dir) + x + ":" + y;
 	}
     }
+
+    return encoding;
 }
 
 Game.prototype.getDirections = function(x, y) {

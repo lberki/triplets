@@ -6,19 +6,51 @@ function sendRequest(url, data, callback) {
 }
 
 $(document).ready(function() {
+    $("#game").hide();
     $("#stash").click(stash);
-    sendRequest("/startGame", {}, gameStarted);
+    $("#startButton").click(function() {
+	var args = { 
+	    username: $("#username").val(),
+	    password: $("#password").val()
+	};
+
+	if (args.username === "" && args.password === "") {
+	    args = {};
+	}
+	sendRequest("/startGame", args, gameStarted);		    
+    });
 });
 
+function maybeShowError(response) {
+    if ("error" in response) {
+	$("#error").text(response.error).show();
+	return true;
+    } else {
+	$("#error").hide();
+	return false;
+    }
+}
+
 function gameStarted(data) {
+    console.log(data);
+    if (maybeShowError(data)) {
+	return;
+    }
     gameId = data.id;
     console.log("Game started, id=" + gameId);
+    $("#game").show();
+    $("#login").hide();
     showState(data);
 }
 
 function showState(data) {
+    if (maybeShowError(data)) {
+	$("#game").hide();
+	$("#login").show();
+	return;
+    }
+
     var state = data.state;
-    console.log(state);
     setBoard(state.board, state.height, state.width);
     $("#score").text(state.score);
     $("#next").attr("class", "tile figure_" + state.next).text(state.next);

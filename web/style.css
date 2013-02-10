@@ -1,4 +1,7 @@
-// e123456789BgtcRrmC
+div#error {
+    color: #d00;
+    font-weight: bold;
+}
 
 div#score {
     display: inline-block;

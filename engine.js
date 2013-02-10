@@ -262,6 +262,10 @@ Game.prototype.placeFigure = function(x, y, figure) {
 
 Game.prototype.place = function(x, y) {
     var figure = this.next;
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+	return false;
+    }
+
     if (figure === FIGURES.robot) {
 	if (this.board[y][x] === FIGURES.bear) {
 	    figure = FIGURES.grave;
@@ -277,7 +281,6 @@ Game.prototype.place = function(x, y) {
     if (figure === FIGURES.crystal) {
 	figure = this.decideCrystal(x, y);
     }
-
     this.placeFigure(x, y, figure);
     this.moveBears();
     this.next = randomFigure();

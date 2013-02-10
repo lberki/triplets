@@ -1,26 +1,37 @@
 function id(v) { return v; }
 
-var name = "John";
-var socket = io.connect("http://oldie.muc.lberki.net:8080");
-socket.emit("startGame", { name: name });
-socket.on("state", function(data) { 
-    console.log(data);
-    setBoard(data.board, data.height, data.width);
-    $("#score").text(data.score);
-    $("#next").attr("class", "tile figure_" + data.next).text(data.next);
-    $("#stash").attr("class", "tile figure_" + data.stash).text(data.stash);
-});
+function sendRequest(url, data, callback) {
+    $.ajax(url, { data: data })
+	.done(callback);
+}
 
 $(document).ready(function() {
     $("#stash").click(stash);
+    sendRequest("/startGame", {}, gameStarted);
 });
 
+function gameStarted(data) {
+    gameId = data.id;
+    console.log("Game started, id=" + gameId);
+    showState(data);
+}
+
+function showState(data) {
+    var state = data.state;
+    console.log(state);
+    setBoard(state.board, state.height, state.width);
+    $("#score").text(state.score);
+    $("#next").attr("class", "tile figure_" + state.next).text(state.next);
+    $("#stash").attr("class", "tile figure_" + state.stash).text(state.stash);
+}
+
 function stash() {
-    socket.emit("stash", { name: name });
+    sendRequest("action", { gameId: gameId, action: "stash" }, showState);
 }
 
 function cellClicked(cell) {
-    socket.emit("place", { name: name, x: cell.x, y: cell.y });
+    sendRequest("/action", { gameId: gameId, action: "place", x: cell.x, y: cell.y },
+		showState);
 }
 
 function setBoard(board, height, width) {

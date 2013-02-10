@@ -1,49 +1,51 @@
 var engine = require("./engine");
+var idgen = require("idgen");
 
 function Manager() {
     this.games = {};
     this.timeouts = {};
 }
 
-Manager.prototype.startGame = function(data, callback) {
-    var self = this;
-    console.log("start: " + data.name);
-    this.games[data.name] = new engine.Game(6, 6);
-    callback.state(this.games[data.name].getState());
-    this.tickle(data.name);
+Manager.prototype.startGame = function(data) {
+    var gameId = idgen(32, "0123456789abcdef");
+    this.games[gameId] = new engine.Game(6, 6);
+    this.tickle(gameId);
+    return { id: gameId, state: this.games[gameId].getState() };
 }
 
-Manager.prototype.tickle = function(name) {
+Manager.prototype.tickle = function(gameId) {
     var self = this;
-    if (name in this.timeouts) {
-	clearTimeout(this.timeouts[name]);
+    if (gameId in this.timeouts) {
+	clearTimeout(this.timeouts[gameId]);
     }
 
-    this.timeouts[name] = setTimeout(function() {
-	self.timedOut(name);
+    this.timeouts[gameId] = setTimeout(function() {
+	self.timedOut(gameId);
     }, 100000000);
 }
 
-Manager.prototype.timedOut = function(name) {
-    console.log("timed out: " + name);
-    delete this.games[name];
-    delete this.timeouts[name];
+Manager.prototype.timedOut = function(gameId) {
+    console.log("timed out: " + gameId);
+    delete this.games[gameId];
+    delete this.timeouts[gameId];
 }
 
-Manager.prototype.place = function(data, callback) {
-    var game = this.games[data.name];
-    console.log("place: " + data.x + ":" + data.y);
-    game.place(data.x, data.y);
-    callback.state(game.getState());
-    this.tickle(data.name);
-}
+Manager.prototype.action = function(data) {
+    var game = this.games[data.gameId];
+    var rxNumber = /^[0-9]+$/;
+    switch (data.action) {
+    case "place":
+	if (data.x.match(rxNumber) && data.y.match(rxNumber)) {
+	    game.place(parseInt(data.x), parseInt(data.y));
+	}
+	break;
+    case "stash":
+	game.stash();
+	break;
+    }
 
-Manager.prototype.stash = function(data, callback) {
-    var game = this.games[data.name];
-    console.log("stash: " + data.name);
-    game.stash();
-    callback.state(game.getState());
-    this.tickle(data.name);
+    this.tickle(data.gameId);
+    return { state: game.getState() };
 }
 
 exports.Manager = Manager;

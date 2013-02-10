@@ -162,7 +162,9 @@ function Game(width, height) {
     this.stashed = FIGURES.empty;
     this.next = randomFigure();
     this.score = 0;
+    this.turns = 0;
     this.gameOver = false;
+    this.lastMove = "N" + this.next.symbol;
 }
 
 Game.prototype.getState = function() {
@@ -180,7 +182,8 @@ Game.prototype.getState = function() {
 	stash: this.stashed.symbol,
 	width: this.width,
 	height: this.height,
-	gameOver: this.gameOver
+	gameOver: this.gameOver,
+	turns: this.turns
     };
 }
 
@@ -330,7 +333,9 @@ Game.prototype.place = function(x, y) {
 	}
     }
 
-    return encoding;
+    this.turns += 1;
+    this.lastMove = encoding;
+    return true;
 }
 
 Game.prototype.stash = function() {
@@ -347,7 +352,8 @@ Game.prototype.stash = function() {
 	encoding += " N" + this.next.symbol;
     }
 
-    return encoding;
+    this.lastMove = encoding;
+    return true;
 }
 
 Game.prototype.isImmobileBear = function(x, y) {

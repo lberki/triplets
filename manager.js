@@ -54,15 +54,30 @@ Manager.prototype.verifyPassword = function(username, provided, stored, callback
 }
 
 Manager.prototype.createGame = function(username, callback) {
+    var self = this;
+
     if (username === null) {
 	console.log("Game started for anonymous user.");
     } else {
 	console.log("Game started for user " + username);
     }
     var gameId = idgen.hex(32);
-    this.games[gameId] = { username: username, game: new engine.Game(2, 2) };
+    var game = new engine.Game(2, 2);
+    this.games[gameId] = { username: username, game: game };
     this.tickle(gameId);
-    callback({ id: gameId, state: this.games[gameId].game.getState() });
+
+    if (username === null) {
+	callback({ id: gameId, state: game.getState() });
+	return;
+    }
+    
+    self.recordMove(gameId, game.lastMove, function(ok) {	
+	if (ok) {
+	    callback({ id: gameId, state: game.getState() });
+	} else {
+	    callback({ error: "Server error, cannot start game" });
+	}
+    });
 }
 
 Manager.prototype.tickle = function(gameId) {
@@ -73,11 +88,11 @@ Manager.prototype.tickle = function(gameId) {
 
     this.timeouts[gameId] = setTimeout(function() {
 	console.log("game " + gameId + " timed out");
-	self.finishGame(gameId);
+	self.finishGame(gameId, true);
     }, GAME_TIMEOUT_MS);
 }
 
-Manager.prototype.finishGame = function(gameId) {
+Manager.prototype.finishGame = function(gameId, record) {
     var game = this.games[gameId];
     if (gameId in this.timeouts) {
 	clearTimeout(this.timeouts[gameId]);
@@ -86,18 +101,17 @@ Manager.prototype.finishGame = function(gameId) {
     delete this.games[gameId];
     delete this.timeouts[gameId];
 
-    if (game.username !== null) {
-	this.recordFinishedGame(game.username, gameId, game.game.getState().score);
+    if (record && game !== undefined && game.username !== null) {
+	this.recordFinishedGame(game.username, gameId, game.game.getState());
     }
 }
 
-Manager.prototype.recordFinishedGame = function(username, gameId, score) {
-    console.log("Recording game " + gameId + " for " + username + " with score " + score);
+Manager.prototype.recordFinishedGame = function(username, gameId, state) {
     this.redis.multi()
 	.sadd("userGames:" + username, gameId)
-	.hincrby("user:" + username, "cumulativeScore", score)
+	.hincrby("user:" + username, "cumulativeScore", state.score)
 	.hincrby("user:" + username, "gameCount", 1)
-        .hset("game:" + gameId, "score", score)
+        .hmset("game:" + gameId, "score", state.score, "turns", state.turns)
 	.exec(function(err) {
 	    if (err !== null) {
 		console.log("Could not record game " + gameId);
@@ -105,7 +119,22 @@ Manager.prototype.recordFinishedGame = function(username, gameId, score) {
 	});
 }
 
+Manager.prototype.recordMove = function(gameId, move, callback, errorCallback) {
+    var self = this;
+    this.redis.rpush("gameMoves:" + gameId, move, function(err) {
+	if (err === null) {
+	    callback(true);
+	} else {
+	    console.log("Error while recording move for game " + gameId + ", aborting game");
+	    self.finishGame(gameId, false);
+	    callback(false);
+	}
+    });
+}
+
 Manager.prototype.action = function(data, callback) {
+    var self = this;
+
     if (!(data.gameId in this.games)) {
 	callback({error: "Unknown game (timed out? finished?)" });
 	return;
@@ -124,14 +153,31 @@ Manager.prototype.action = function(data, callback) {
 	break;
     }
 
-    var state = game.getState();
-    if (state.gameOver) {
-	this.finishGame(data.gameId);
-    } else {
-	this.tickle(data.gameId);
+    var respond = function() {
+	var state = game.getState();
+	if (state.gameOver) {
+	    console.log("Game " + data.gameId + " over.");
+	    self.finishGame(data.gameId, true);
+	} else {
+	    self.tickle(data.gameId);
+	}
+
+	callback({ state: state });
+    }
+    
+    if (this.games[data.gameId].username === null) {
+	respond();
+	return;
     }
 
-    callback({ state: state });
+    this.recordMove(data.gameId, game.lastMove, function(ok) {
+	if (!ok) {
+	    callback({ error: "Server error, game aborted." });
+	} else {
+	    respond();
+	}
+    });
+
 }
 
 exports.Manager = Manager;

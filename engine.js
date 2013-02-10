@@ -145,6 +145,7 @@ function Game(width, height) {
     this.stashed = FIGURES.empty;
     this.next = randomFigure();
     this.score = 0;
+    this.gameOver = false;
 }
 
 Game.prototype.getState = function() {
@@ -161,7 +162,8 @@ Game.prototype.getState = function() {
 	next: this.next.symbol,
 	stash: this.stashed.symbol,
 	width: this.width,
-	height: this.height
+	height: this.height,
+	gameOver: this.gameOver
     };
 }
 
@@ -260,7 +262,19 @@ Game.prototype.placeFigure = function(x, y, figure) {
     return collapsed;
 }
 
+Game.prototype.forCells = function(f) {
+    for (var y = 0; y < this.height; y++) {
+	for (var x = 0; x < this.width; x++) {
+	    f(x, y, this.board[y][x]);
+	}
+    }
+}
+
 Game.prototype.place = function(x, y) {
+    if (this.gameOver) {
+	return;
+    }
+
     var figure = this.next;
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
 	return false;
@@ -284,10 +298,25 @@ Game.prototype.place = function(x, y) {
     this.placeFigure(x, y, figure);
     this.moveBears();
     this.next = randomFigure();
+    if (this.next != FIGURES.robot && this.stash != FIGURES.robot && this.stash != FIGURES.empty) {
+	var foundEmpty = false;
+	this.forCells(function(x, y, figure) { 
+	    if (figure === FIGURES.empty) { foundEmpty = true; } 
+	});
+
+	if (!foundEmpty) {
+	    this.next = FIGURES.empty;
+	    this.gameOver = true;
+	}
+    }
     return true;
 }
 
 Game.prototype.stash = function() {
+    if (this.gameOver) {
+	return;
+    }
+
     var oldStashed = this.stashed;
     this.stashed = this.next;
     this.next = oldStashed;

@@ -1,5 +1,3 @@
-// - Move to HTTP-based comms instead of socket.io
-// - Determine end of game and remove game from the live set
 // - Ephemeral mode that does not save anything
 // - Record individual games on disk
 // - Record finished games on disk

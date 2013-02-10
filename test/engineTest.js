@@ -220,3 +220,14 @@ exports.robotClearsBuilding = function(test) {
     assertBoard(test, g, "  ");
     test.done();    
 }
+
+exports.gameOverDetected = function(test) {
+    var g = new engine.Game(1, 1);
+    g.setBoard(" ");
+    g.setNext(figures.grass);
+    g.stash();
+    g.setNext(figures.grass);
+    test.ok(g.place(0, 0));
+    test.equals(g.getState().gameOver, true);
+    test.done();
+}

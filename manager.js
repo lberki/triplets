@@ -8,7 +8,7 @@ function Manager() {
 
 Manager.prototype.startGame = function(data) {
     var gameId = idgen(32, "0123456789abcdef");
-    this.games[gameId] = new engine.Game(6, 6);
+    this.games[gameId] = new engine.Game(2, 2);
     this.tickle(gameId);
     return { id: gameId, state: this.games[gameId].getState() };
 }
